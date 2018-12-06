@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<drivers>
+	<driver filename="data_to_ram"
+		compatible="ggm,dataToRam"
+		name="dataToRam" plat="plat_data_to_ram_port" />
+</drivers>
