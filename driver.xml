@@ -3,4 +3,8 @@
 	<driver filename="data_to_ram"
 		compatible="ggm,dataToRam"
 		name="dataToRam" plat="plat_data_to_ram_port" />
+	<driver filename="fir"
+		compatible="ggm,fir"
+		name="fir" plat="plat_fir_port">
+	</driver>
 </drivers>
