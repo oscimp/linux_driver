@@ -1,2 +1,2 @@
 # linux_driver
-OscillatorIMP echosystem Linux drivers
+OscillatorIMP ecosystem Linux drivers
