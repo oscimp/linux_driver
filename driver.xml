@@ -7,6 +7,9 @@
 		compatible="ggm,fir"
 		name="fir" plat="plat_fir_port">
 	</driver>
+	<driver filename="edfb"
+		compatible="ggm,edfb"
+		name="edfb" plat="plat_edfb_port" />
 	<driver filename="fpgagen"
 		compatible = "ggm,fpgagen"
 		name="fpgagen" plat="plat_fpgagen_port" />
