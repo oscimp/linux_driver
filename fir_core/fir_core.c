@@ -40,7 +40,12 @@
 #include <linux/slab.h>		/* kmalloc */
 
 #include <linux/miscdevice.h>
-#include <asm/uaccess.h>	/* copy_to_user function */
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)
+#  include <asm/uaccess.h>	/* copy_to_user function */
+#else
+#  include <linux/uaccess.h>	/* copy_to_user function */
+#endif
+#include <linux/uaccess.h>
 #include <asm/io.h>		/* readw() writew() */
 
 #include "fir_config.h"
