@@ -41,7 +41,6 @@
 #include <asm/io.h>		/* readw() writew() */
 
 #include "axi_to_dac_config.h"
-#include "../common.h"
 
 #define DRIVER_NAME "axi_to_dac"
 
@@ -71,7 +70,7 @@ static long axi_to_dac_ioctl(struct file *filp, unsigned int cmd,
 {
 	int retval = 0;
 	struct axi_to_dac_dev *axi_to_dac;
-	data_type ioc;  // defini dans ../common.h
+	u32 ioc;
 
 	/* guard against device removal before, or while,
 	 * we issue this ioctl.
@@ -80,16 +79,16 @@ static long axi_to_dac_ioctl(struct file *filp, unsigned int cmd,
 	if (axi_to_dac == NULL)
 		return -ENODATA;
 
-	if (get_user(ioc, (data_type __user*) arg))
+	if (get_user(ioc, (u32 __user*) arg))
 		return -EACCES;
 	if (_IOC_NR(cmd) == 0){
-		printk("daca %lu", ioc);
-		writefpga(ioc, axi_to_dac->membase + AXI_TO_DAC_REG_DACA);
-		printk("check: %d", readfpga(axi_to_dac->membase + AXI_TO_DAC_REG_DACA));
+		printk("daca %u", ioc);
+		writel(ioc, axi_to_dac->membase + AXI_TO_DAC_REG_DACA);
+		printk("check: %d", readl(axi_to_dac->membase + AXI_TO_DAC_REG_DACA));
 	} else {
-		printk("dacb %lu\n",ioc);
-		writefpga(ioc, axi_to_dac->membase + AXI_TO_DAC_REG_DACB);
-		printk("check: %d", readfpga(axi_to_dac->membase + AXI_TO_DAC_REG_DACB));
+		printk("dacb %u\n",ioc);
+		writel(ioc, axi_to_dac->membase + AXI_TO_DAC_REG_DACB);
+		printk("check: %d", readl(axi_to_dac->membase + AXI_TO_DAC_REG_DACB));
 	}
 	return retval;
 }
@@ -177,7 +176,7 @@ static int axi_to_dac_probe(struct platform_device *pdev)
 	sdev->mem_res = mem_res;
 
 	/* check if ID is correct */
-	ip_id = readfpga(sdev->membase + AXI_TO_DAC_REG_ID);
+	ip_id = readl(sdev->membase + AXI_TO_DAC_REG_ID);
 	printk("id : %d\n", ip_id);
 
 	if (pdata) {
@@ -185,12 +184,12 @@ static int axi_to_dac_probe(struct platform_device *pdev)
 		if (ip_id != pdata->idnum) {
 			ret = -ENODEV;
 			dev_err(&pdev->dev, "For %s id:%d doesn't match "
-				"with id read %d,\n is device present ?\n",
-				pdata->name, pdata->idnum, ip_id);
+				 "with id read %d,\n is device present ?\n",
+				 pdata->name, pdata->idnum, ip_id);
 			goto out_iounmap;
 		}
-		pdata->sdev = sdev;
 #endif
+		pdata->sdev = sdev;
 		size_name = (1 + strlen(pdata->name)) * sizeof(char);
 	} else {
 		size_name = (1 + strlen(np->name)) * sizeof(char);
@@ -204,17 +203,18 @@ static int axi_to_dac_probe(struct platform_device *pdev)
 	}
 
 	if (pdata) {
-		if (snprintf(sdev->name, size_name, "%s", pdata->name) < 0) {
+		if (snprintf
+		    (sdev->name, size_name, "%s", pdata->name) < 0) {
 			printk("copy error");
 			goto out_name_free;
 		}
 	} else {
-		if (strncpy(sdev->name, np->name, 1+strlen(np->name)) < 0) {
+		if (strncpy(sdev->name, np->name, 1 + strlen(np->name)) < 0) {
 			printk("copy error");
 			goto out_name_free;
 		}
 	}
-	printk("name: %s %d %d\n",sdev->name, sizeof(sdev->name), strlen(sdev->name));
+	printk("name: %s %d %d\n", sdev->name, sizeof(sdev->name), strlen(sdev->name));
 
 	sdev->misc.name = sdev->name;
 	sdev->misc.minor = MISC_DYNAMIC_MINOR;
