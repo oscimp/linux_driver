@@ -48,15 +48,9 @@ typedef unsigned long data_type;
 
 #define DRIVER_NAME "add_const"
 
-#ifdef USE_32Bits
 #define ADD_CONST_REG_ID			(0x00 << 2)
 #define ADD_CONST_REG_OFFSET_L	(0x01 << 2)
 #define ADD_CONST_REG_OFFSET_H	(0x02 << 2)
-#else
-#define ADD_CONST_REG_ID			(0x00 << 1)
-#define ADD_CONST_REG_OFFSET_L	(0x01 << 1)
-#define ADD_CONST_REG_OFFSET_H	(0x02 << 1)
-#endif
 
 struct add_const_dev {
 	char *name;			/* name of the instance */
