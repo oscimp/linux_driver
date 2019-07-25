@@ -44,14 +44,18 @@
 
 #define DRIVER_NAME "axi_to_dac"
 
+#define USE_32Bits
+
 #ifdef USE_32Bits
-#define AXI_TO_DAC_REG_ID		(0x00 << 2)
+#define AXI_TO_DAC_REG_ID	(0x00 << 2)
 #define AXI_TO_DAC_REG_DACA	(0x01 << 2)
 #define AXI_TO_DAC_REG_DACB	(0x02 << 2)
+#define AXI_TO_DAC_REG_CONF	(0x03 << 2)
 #else
-#define AXI_TO_DAC_REG_ID		(0x00 << 1)
+#define AXI_TO_DAC_REG_ID	(0x00 << 1)
 #define AXI_TO_DAC_REG_DACA	(0x01 << 1)
 #define AXI_TO_DAC_REG_DACB	(0x02 << 1)
+#define AXI_TO_DAC_REG_CONF	(0x03 << 1)
 #endif
 
 struct axi_to_dac_dev {
@@ -70,7 +74,7 @@ static long axi_to_dac_ioctl(struct file *filp, unsigned int cmd,
 {
 	int retval = 0;
 	struct axi_to_dac_dev *axi_to_dac;
-	u32 ioc;
+	u32 ioc, reg, tmp, mask;
 
 	/* guard against device removal before, or while,
 	 * we issue this ioctl.
@@ -79,16 +83,38 @@ static long axi_to_dac_ioctl(struct file *filp, unsigned int cmd,
 	if (axi_to_dac == NULL)
 		return -ENODATA;
 
-	if (get_user(ioc, (u32 __user*) arg))
-		return -EACCES;
-	if (_IOC_NR(cmd) == 0){
-		printk("daca %u", ioc);
-		writel(ioc, axi_to_dac->membase + AXI_TO_DAC_REG_DACA);
-		printk("check: %d", readl(axi_to_dac->membase + AXI_TO_DAC_REG_DACA));
+	switch (_IOC_NR(cmd)) {
+	case AXI_TO_DAC_DATA_A:
+		reg = AXI_TO_DAC_REG_DACA;
+		break;
+	case AXI_TO_DAC_DATA_B:
+		reg = AXI_TO_DAC_REG_DACB;
+		break;
+	case AXI_TO_DAC_EN_HIGH:
+	case AXI_TO_DAC_SYNC_CHAN:
+		reg = AXI_TO_DAC_REG_CONF;
+		break;
+	}
+
+	if (_IOC_DIR(cmd) & _IOC_READ) {
+		ioc = readl(axi_to_dac->membase + reg);
+		if (put_user(ioc, (u32 __user *) arg))
+			return -EACCES;
 	} else {
-		printk("dacb %u\n",ioc);
-		writel(ioc, axi_to_dac->membase + AXI_TO_DAC_REG_DACB);
-		printk("check: %d", readl(axi_to_dac->membase + AXI_TO_DAC_REG_DACB));
+		if (get_user(ioc, (u32 __user*) arg))
+			return -EACCES;
+		tmp = ioc;
+		/* for REG_CONF we must maintain */
+		if (reg == AXI_TO_DAC_REG_CONF) {
+			tmp = readl(axi_to_dac->membase + reg);
+			if (_IOC_NR(cmd) == AXI_TO_DAC_SYNC_CHAN)
+				mask = AXI_TO_DAC_SYNC_CHAN;
+			else
+				mask = AXI_TO_DAC_BOTH_EN_HIGH;
+			tmp &= ~mask;
+			tmp |= ioc;
+		}
+		writel(tmp, axi_to_dac->membase + reg);
 	}
 	return retval;
 }
