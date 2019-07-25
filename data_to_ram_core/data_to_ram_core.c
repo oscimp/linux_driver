@@ -135,8 +135,10 @@ static long data_to_ram_ioctl(struct file *filp, unsigned int cmd,
 		if (get_user(ioc, (u32 __user *) arg))
 			return -EACCES;
 		printk("%x %x (%u)\n", _IOC_NR(cmd), ioc, ioc);
-		if (_IOC_NR(cmd) == DCTR_START)
+		if (_IOC_NR(cmd) == DCTR_START) {
 			writel(0x01, data_dev->membase + DCTR_REG_START);
+			data_dev->wait_read = 1;
+		}
 	}
 	return retval;
 }
