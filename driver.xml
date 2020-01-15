@@ -3,6 +3,9 @@
 	<driver filename="axi_to_dac"
 		compatible="ggm,axi_to_dac"
 		name="axi_to_dac" plat="plat_axi_to_dac_port" />
+	<driver filename="data_dma_direct"
+		compatible="ggm,dataDmaDirect"
+		name="dataDmaDirect" />
 	<driver filename="data_to_ram"
 		compatible="ggm,dataToRam"
 		name="dataToRam" plat="plat_data_to_ram_port" />
