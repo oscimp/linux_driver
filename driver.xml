@@ -22,6 +22,9 @@
 	<driver filename="nco_counter"
 		compatible="ggm,nco_counter"
 		name="nco_counter" plat="plat_nco_counter_port"/>
+	<driver filename="pidv3_axi"
+		compatible="ggm,pidv3_axi"
+		name="pidv3_axi" plat="" />
 	<driver filename="switch"
 		compatible = "ggm,switch"
 		name="switch" plat="plat_switch_port" />
