@@ -1,5 +1,5 @@
 # linux_driver
-OscillatorIMP ecosystem Linux drivers
+OscillatorIMP ecosystem Linux drivers. These drivers are designed to help the developer by complying with the usual operating system abstraction hierarchy of making the kernel exchange with hardware and transfering data between kernel space and userspace. While direct access to IP registers is possible (and sometimes necessary if no kernel module has been written for  given IP -- using using the devmem application provided by Busybox in Buildroot -- following the addressing described at https://github.com/oscimp/oscimpDigital/tree/master/doc/IP), we encourage using the abstraction layers hiding the low level access to hardware to the userspace programmer.
 
 Make sure the buildroot toolchain path is included in your $PATH. If not,
 ```
