@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <drivers>
+	<driver filename="add_const"
+                compatible="ggm,add_const"
+                name="add_const" plat="plat_add_const_port" />
 	<driver filename="axi_to_dac"
 		compatible="ggm,axi_to_dac"
 		name="axi_to_dac" plat="plat_axi_to_dac_port" />
@@ -24,7 +27,10 @@
 		name="nco_counter" plat="plat_nco_counter_port"/>
 	<driver filename="pidv3_axi"
 		compatible="ggm,pidv3_axi"
-		name="pidv3_axi" plat="" />
+		name="pidv3_axi" plat="plat_pidv3_axi_port" />
+        <driver filename="redpitaya_converters_12"
+                compatible="ggm,redpitaya_converters_12"
+                name="redpitaya_converters_12" plat="plat_redpitaya_converters_12_port" />
 	<driver filename="switch"
 		compatible = "ggm,switch"
 		name="switch" plat="plat_switch_port" />
