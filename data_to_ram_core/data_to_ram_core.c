@@ -62,9 +62,29 @@ struct data_to_ram_dev {
 	struct miscdevice misc;
 	struct list_head list;
 	int wait_read;
+	/* irq */
+	u8 use_irq;
+	int irq_res;
+	wait_queue_head_t	wq;
+	bool				irq_handled;
 };
 
 static LIST_HEAD(data_to_ram_data_list);
+
+static irqreturn_t data_to_ram_irq(int irq, void *data)
+{
+
+	struct data_to_ram_dev *dev = (struct data_to_ram_dev *)data;
+	printk("IT!\n");
+	if (dev == NULL) {
+		printk("problem de dev null\n");
+		return IRQ_HANDLED;
+	}
+	dev->irq_handled = true;
+	wake_up_interruptible(&dev->wq);
+
+	return IRQ_HANDLED;
+}
 
 static ssize_t data_to_ram_read(struct file *filp,
 				char __user * ubuf, size_t count,
@@ -77,24 +97,44 @@ static ssize_t data_to_ram_read(struct file *filp,
 	int i;
 	u32 value;
 	int timeout;
+	int ret;
 
 	data = kmalloc(retval, GFP_KERNEL);
 	if (data == NULL)
 		return -ENOMEM;
 
-	if (data_dev->wait_read == 0)
+	if (data_dev->wait_read == 0) {
+		data_dev->irq_handled = false;
 		writel(0x01, data_dev->membase + DCTR_REG_START);
+	} else {
+		data_dev->wait_read=0;
+	}
 
-	timeout = 0;
-	do {
-		value = readl(data_dev->membase + DCTR_REG_STATUS);
-		if (timeout == 10000000) {
-			printk("timeout\n");
-			retval = -EFAULT;
-			goto out_free;
-		} else
-			timeout++;
-	} while ((value & 0x01) != 0);
+	if (data_dev->use_irq) {
+		/* wait until interrupt happened */
+		ret = wait_event_interruptible_hrtimeout(data_dev->wq,
+				data_dev->irq_handled, timeout);
+		if (ret == -ETIME) {
+			dev_alert(data_dev->misc.this_device, "  timeout!\n");
+			return -ETIME;
+		} else if (ret) {
+			dev_alert(data_dev->misc.this_device, "  error=%d\n", ret);
+			return -ERESTARTSYS;
+		}
+		data_dev->irq_handled = false;
+	} else {
+
+		timeout = 0;
+		do {
+			value = readl(data_dev->membase + DCTR_REG_STATUS);
+			if (timeout == 10000000) {
+				printk("timeout\n");
+				retval = -EFAULT;
+				goto out_free;
+			} else
+				timeout++;
+		} while ((value & 0x01) != 0);
+	}
 
 	for (i = 0; i < counter; i++)
 		data[i] = readl(data_dev->membase + DCTR_REG_DATA);
@@ -138,6 +178,7 @@ static long data_to_ram_ioctl(struct file *filp, unsigned int cmd,
 		if (_IOC_NR(cmd) == DCTR_START) {
 			writel(0x01, data_dev->membase + DCTR_REG_START);
 			data_dev->wait_read = 1;
+			data_dev->irq_handled = false;
 		}
 	}
 	return retval;
@@ -184,6 +225,7 @@ static int data_to_ram_probe(struct platform_device *pdev)
 	int ret = 0;
 	struct data_to_ram_dev *sdev;
 	struct resource *mem_res;
+	size_t size_name;
 
 	if (pdata) {
 		printk("%s probing %d\n", pdata->name, pdata->num);
@@ -225,14 +267,11 @@ static int data_to_ram_probe(struct platform_device *pdev)
 
 	if (pdata) {
 		pdata->sdev = sdev;
-		sdev->name =
-		    (char *)kmalloc((1 + strlen(pdata->name)) * sizeof(char),
-				    GFP_KERNEL);
+		size_name = sizeof(char) * strlen(pdata->name) + 1;
 	} else {
-		sdev->name =
-		    (char *)kmalloc(sizeof(char) * strlen(np->name) + 1,
-				    GFP_KERNEL);
+		size_name = sizeof(char) * strlen(np->name) + 1;
 	}
+	sdev->name = (char *)kmalloc(size_name, GFP_KERNEL);
 
 	if (sdev->name == NULL) {
 		dev_err(&pdev->dev, "Kmalloc name space error\n");
@@ -240,14 +279,12 @@ static int data_to_ram_probe(struct platform_device *pdev)
 	}
 
 	if (pdata) {
-		if (snprintf
-		    (sdev->name, 1 + sizeof(pdata->name), "%s",
-		     pdata->name) < 0) {
+		if (snprintf(sdev->name, size_name, "%s", pdata->name) < 0) {
 			printk("copy error");
 			goto out_free_name;
 		}
 	} else {
-		if (strncpy(sdev->name, np->name, 1 + strlen(np->name)) < 0) {
+		if (strncpy(sdev->name, np->name, size_name) < 0) {
 			printk("copy error");
 			goto out_free_name;
 		}
@@ -272,6 +309,25 @@ static int data_to_ram_probe(struct platform_device *pdev)
 	dev_info(&pdev->dev, "%s: Add the device to the kernel, "
 		 "connecting cdev to major/minor number \n", sdev->name);
 
+	/* irq */
+	/* get IRQ 0 'dmatest' from device tree */
+	sdev->irq_res = platform_get_irq(pdev, 0);
+	if (sdev->irq_res > 0) {
+		sdev->use_irq = 1;
+		sdev->irq_handled = false;
+		init_waitqueue_head(&sdev->wq);
+		printk("irq res %d\n", sdev->irq_res);
+
+		if (devm_request_irq(&pdev->dev, sdev->irq_res, data_to_ram_irq,
+					IRQF_TRIGGER_RISING, "complex16ToRam", sdev)) {
+			printk(KERN_ERR "Couldn't allocate IRQ (%d)\n", sdev->irq_res);
+			goto out_free_name;
+		}
+		printk("irq ok : %d\n", sdev->irq_res);
+	} else {
+		sdev->use_irq = 0;
+	}
+
 	list_add(&sdev->list, &data_to_ram_data_list);
 
 	/* OK driver ready ! */
@@ -294,6 +350,9 @@ static int data_to_ram_remove(struct platform_device *pdev)
 {
 	struct data_to_ram_dev *sdev;
 	sdev = (struct data_to_ram_dev *)platform_get_drvdata(pdev);
+
+	if (sdev->use_irq)
+		devm_free_irq(&pdev->dev, sdev->irq_res, sdev);
 
 	misc_deregister(&sdev->misc);
 	printk(KERN_INFO "%s: deleted with success\n", sdev->name);
