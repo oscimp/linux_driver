@@ -97,6 +97,7 @@ static ssize_t data_to_ram_read(struct file *filp,
 	int i;
 	u32 value;
 	int timeout;
+	ktime_t timeout_irq = ktime_set(40, 0);
 	int ret;
 
 	data = kmalloc(retval, GFP_KERNEL);
@@ -113,7 +114,7 @@ static ssize_t data_to_ram_read(struct file *filp,
 	if (data_dev->use_irq) {
 		/* wait until interrupt happened */
 		ret = wait_event_interruptible_hrtimeout(data_dev->wq,
-				data_dev->irq_handled, timeout);
+				data_dev->irq_handled, timeout_irq);
 		if (ret == -ETIME) {
 			dev_alert(data_dev->misc.this_device, "  timeout!\n");
 			return -ETIME;
