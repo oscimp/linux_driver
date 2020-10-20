@@ -46,16 +46,11 @@
 
 #define USE_32Bits
 
-//#define REDPITAYA_CONVERTERS_12_REG_CONF	(0x00 << 2)
-//#define REDPITAYA_CONVERTERS_12_REG_ADC_DAC_SEL	(0x01 << 2)
-//#define REDPITAYA_CONVERTERS_12_REG_CONF_EN	(0x02 << 2)
-//#define REDPITAYA_CONVERTERS_12_REG_PLL_EN      (0x03 << 2)
-
 #define REDPITAYA_CONVERTERS_12_CONF_BIT		(0x1 << 0)
 #define REDPITAYA_CONVERTERS_12_ADC_DAC_SEL_BIT		(0x1 << 1)
 #define REDPITAYA_CONVERTERS_12_CONF_EN_BIT		(0x1 << 2)
 #define REDPITAYA_CONVERTERS_12_PLL_EN_BIT              (0x1 << 3)
-
+#define REDPITAYA_CONVERTERS_12_PLL_OK_BIT              (0x1 << 4)
 
 struct redpitaya_converters_12_dev {
 	char *name;		/* name of the instance */
@@ -83,7 +78,6 @@ static long redpitaya_converters_12_ioctl(struct file *filp, unsigned int cmd,
 		return -ENODATA;
 
 	reg = (_IOC_NR(cmd) << 2);
-
 	if (_IOC_DIR(cmd) & _IOC_READ) {
 		ioc = readl(redpitaya_converters_12->membase + reg);
 		printk("read %x\n", ioc);
