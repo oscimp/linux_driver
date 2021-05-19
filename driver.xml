@@ -22,6 +22,9 @@
 	<driver filename="fpgagen"
 		compatible = "ggm,fpgagen"
 		name="fpgagen" plat="plat_fpgagen_port" />
+	<driver filename="fft"
+		compatible = "ggm,fft"
+		name="fft" plat="plat_fft_port"/>
 	<driver filename="nco_counter"
 		compatible="ggm,nco_counter"
 		name="nco_counter" plat="plat_nco_counter_port"/>
@@ -34,5 +37,4 @@
 	<driver filename="switch"
 		compatible = "ggm,switch"
 		name="switch" plat="plat_switch_port" />
-
 </drivers>
