@@ -30,7 +30,7 @@
 	<driver filename="pidv3_axi"
 		compatible="ggm,pidv3_axi"
 		name="pidv3_axi" plat="plat_pidv3_axi_port" />
-		<driver filename="redpitaya_converters_12"
+	<driver filename="redpitaya_converters_12"
 		compatible="ggm,redpitaya_converters_12"
 		name="redpitaya_converters_12" plat="plat_redpitaya_converters_12_port" />
 	<driver filename="switch"
