@@ -26,7 +26,7 @@ CLEAN_MOD+= .tmp_versions Module.markers
 MODULES := $(wildcard obj-m *.ko)
 
 default:
-	$(MAKE) -C $(LINUX_SRC) SUBDIRS=$(PWD) modules ARCH=arm \
+	$(MAKE) -C $(LINUX_SRC) KBUILD_EXTMOD=$(PWD) modules ARCH=arm \
 	CROSS_COMPILE=$(CROSS_COMPILE)
 
 install: default
