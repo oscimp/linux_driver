@@ -1,0 +1,8 @@
+
+config ARMADEUS_FPGA_VIRTUAL_COMPONENTS_BUTTON
+	tristate "button"
+	default n
+	depends on ARMADEUS_FPGA_VIRTUAL_COMPONENTS
+	---help---
+	  Armadeus driver for virtual button component.
+
