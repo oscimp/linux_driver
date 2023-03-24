@@ -24,6 +24,9 @@
 	<driver filename="fft"
 		compatible = "ggm,fft"
 		name="fft" plat="plat_fft_port"/>
+	<driver filename="lutGene"
+		compatible = "ggm,lutGene"
+		name="lutGene" plat="none"/>
 	<driver filename="nco_counter"
 		compatible="ggm,nco_counter"
 		name="nco_counter" plat="plat_nco_counter_port"/>
