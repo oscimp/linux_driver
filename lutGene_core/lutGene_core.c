@@ -46,7 +46,7 @@
 #  include <linux/uaccess.h>	/* copy_to_user function */
 #endif
 #include <linux/uaccess.h>
-#include <asm/io.h>		/* readw() writew() */
+#include <asm/io.h>		/* readl() writel() */
 
 #include "lutGene_config.h"
 
@@ -139,16 +139,16 @@ static ssize_t lutGene_write(struct file *filp, const char __user * buf,
 		return -EFAULT;
 
 	/* reset write counter */
-	writew(data[0], sdev->membase + LUTGENE_REG_RST_ADDR);
+	writel(data[0], sdev->membase + LUTGENE_REG_RST_ADDR);
 	/* send coeffs */
 	if (sdev->output_type == 0) { // real
 		for (i=0; i< count/sizeof(u32); i++)
-			writew(data[i], sdev->membase + LUTGENE_REG_DATA_I);
+			writel(data[i], sdev->membase + LUTGENE_REG_DATA_I);
 	} else { /* complex */
 		printk("complex values %d\n", count / sizeof(u32));
 		for (i=0; i< count/sizeof(u32); i+=2) {
-			writew(data[i], sdev->membase + LUTGENE_REG_DATA_I);
-			writew(data[i+1], sdev->membase + LUTGENE_REG_DATA_Q);
+			writel(data[i], sdev->membase + LUTGENE_REG_DATA_I);
+			writel(data[i+1], sdev->membase + LUTGENE_REG_DATA_Q);
 			if (i < 20) {
 				printk("%d %d\n", data[i], data[i+1]);
 			}
