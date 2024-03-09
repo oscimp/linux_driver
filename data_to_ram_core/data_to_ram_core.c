@@ -128,7 +128,7 @@ static ssize_t data_to_ram_read(struct file *filp,
 		timeout = 0;
 		do {
 			value = readl(data_dev->membase + DCTR_REG_STATUS);
-			if (timeout == 10000000) {
+			if (timeout == 1000000000) {
 				printk("timeout\n");
 				retval = -EFAULT;
 				goto out_free;
