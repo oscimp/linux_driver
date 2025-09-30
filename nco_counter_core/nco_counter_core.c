@@ -271,7 +271,11 @@ static int nco_counter_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int nco_counter_remove(struct platform_device *pdev)
+#else
+static void nco_counter_remove(struct platform_device *pdev)
+#endif
 {
 	struct nco_counter_dev *sdev;
 	sdev = (struct nco_counter_dev *)platform_get_drvdata(pdev);
@@ -283,7 +287,9 @@ static int nco_counter_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id nco_counter_of_match[] = {

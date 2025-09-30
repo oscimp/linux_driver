@@ -37,6 +37,7 @@
 #include <linux/slab.h>		/* kmalloc */
 
 #include <linux/miscdevice.h>
+#include <linux/version.h>
 #include <asm/uaccess.h>	/* copy_to_user function */
 #include <asm/io.h>		/* readw() writew() */
 
@@ -248,7 +249,11 @@ static int add_const_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int add_const_remove(struct platform_device *pdev)
+#else
+static void add_const_remove(struct platform_device *pdev)
+#endif
 {
 	struct add_const_dev *sdev;
 	sdev = (struct add_const_dev *)platform_get_drvdata(pdev);
@@ -260,7 +265,9 @@ static int add_const_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id add_const_of_match[] = {

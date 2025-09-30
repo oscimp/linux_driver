@@ -484,7 +484,11 @@ out_malloc_err:
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int dataDmaDirect_remove(struct platform_device *pdev)
+#else
+static void dataDmaDirect_remove(struct platform_device *pdev)
+#endif
 {
 	struct dataDmaDirect_dev *sdev;
 	sdev = (struct dataDmaDirect_dev *)platform_get_drvdata(pdev);
@@ -506,7 +510,9 @@ static int dataDmaDirect_remove(struct platform_device *pdev)
 	kfree(sdev);
 	printk(KERN_INFO "%s: deleted with success\n", sdev->name);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id dmacopy_of_match[] = {

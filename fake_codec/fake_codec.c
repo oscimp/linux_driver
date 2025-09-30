@@ -16,6 +16,7 @@
 #include <sound/pcm.h>
 #include <sound/initval.h>
 #include <linux/of.h>
+#include <linux/version.h>
 
 #define DRV_NAME "fake_codec"
 
@@ -35,13 +36,19 @@ static const struct snd_soc_dapm_route fake_codec_routes[] = {
     { "ROUT", NULL, "Right LR Playback Mixer" },
 };
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
 static struct snd_soc_codec_driver soc_codec_fake_codec = {
 	.component_driver = {
+#else
+static struct snd_soc_component_driver soc_codec_fake_codec = {
+#endif
 		.dapm_widgets		= fake_codec_widgets,
 		.num_dapm_widgets	= ARRAY_SIZE(fake_codec_widgets),
 		.dapm_routes		= fake_codec_routes,
 		.num_dapm_routes	= ARRAY_SIZE(fake_codec_routes),
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
 	},
+#endif
 };
 
 static struct snd_soc_dai_driver fake_codec_stub_dai = {
@@ -57,14 +64,29 @@ static struct snd_soc_dai_driver fake_codec_stub_dai = {
 
 static int fake_codec_probe(struct platform_device *pdev)
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
 	return snd_soc_register_codec(&pdev->dev, &soc_codec_fake_codec,
 			&fake_codec_stub_dai, 1);
+#else
+	return snd_soc_register_component(&pdev->dev, &soc_codec_fake_codec,
+			&fake_codec_stub_dai, 1);
+#endif
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int fake_codec_remove(struct platform_device *pdev)
+#else
+static void fake_codec_remove(struct platform_device *pdev)
+#endif
 {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
 	snd_soc_unregister_codec(&pdev->dev);
+#else
+	snd_soc_unregister_component(&pdev->dev);
+#endif
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static const struct of_device_id fake_codec_dt_ids[] = {

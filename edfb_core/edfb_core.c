@@ -237,7 +237,11 @@ static int edfb_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int edfb_remove(struct platform_device *pdev)
+#else
+static void edfb_remove(struct platform_device *pdev)
+#endif
 {
 	struct edfb_dev *sdev;
 
@@ -250,7 +254,9 @@ static int edfb_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id edfb_of_match[] = {

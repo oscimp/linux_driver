@@ -287,7 +287,11 @@ static int lutGene_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int lutGene_remove(struct platform_device *pdev)
+#else
+static void lutGene_remove(struct platform_device *pdev)
+#endif
 {
 	struct lutGene_dev *sdev;
 
@@ -300,7 +304,9 @@ static int lutGene_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id lutGene_of_match[] = {

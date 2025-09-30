@@ -33,6 +33,7 @@
 #include <linux/delay.h>
 #include <linux/of.h>
 #include <linux/timer.h>
+#include <linux/version.h>
 
 #include <linux/slab.h>		/* kmalloc */
 
@@ -218,7 +219,11 @@ static int redpitaya_converters_12_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int redpitaya_converters_12_remove(struct platform_device *pdev)
+#else
+static void redpitaya_converters_12_remove(struct platform_device *pdev)
+#endif
 {
 	struct redpitaya_converters_12_dev *sdev;
 	sdev = (struct redpitaya_converters_12_dev *)platform_get_drvdata(pdev);
@@ -230,7 +235,9 @@ static int redpitaya_converters_12_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id redpitaya_converters_12_of_match[] = {

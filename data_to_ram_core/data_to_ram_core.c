@@ -347,7 +347,11 @@ static int data_to_ram_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int data_to_ram_remove(struct platform_device *pdev)
+#else
+static void data_to_ram_remove(struct platform_device *pdev)
+#endif
 {
 	struct data_to_ram_dev *sdev;
 	sdev = (struct data_to_ram_dev *)platform_get_drvdata(pdev);
@@ -362,7 +366,9 @@ static int data_to_ram_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id data_to_ram_of_match[] = {

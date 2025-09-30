@@ -13,6 +13,7 @@
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/slab.h>
+#include <linux/version.h>
 
 #include <sound/core.h>
 #include <sound/pcm.h>
@@ -147,6 +148,9 @@ static int axi_deltaSigma_dai_probe(struct snd_soc_dai *dai)
 }
 
 static const struct snd_soc_dai_ops axi_deltaSigma_dai_ops = {
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 6, 0)
+	.probe = axi_deltaSigma_dai_probe,
+#endif
 	.startup = axi_deltaSigma_startup,
 	.shutdown = axi_deltaSigma_shutdown,
 	.trigger = axi_deltaSigma_trigger,
@@ -154,7 +158,9 @@ static const struct snd_soc_dai_ops axi_deltaSigma_dai_ops = {
 };
 
 static struct snd_soc_dai_driver axi_deltaSigma_dai = {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)
 	.probe = axi_deltaSigma_dai_probe,
+#endif
 	.playback = {
 		.channels_min = 2,
 		.channels_max = 2,
@@ -243,13 +249,19 @@ err_clk_disable:
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int axi_deltaSigma_dev_remove(struct platform_device *pdev)
+#else
+static void axi_deltaSigma_dev_remove(struct platform_device *pdev)
+#endif
 {
 	struct axi_deltaSigma *i2s = platform_get_drvdata(pdev);
 
 	clk_disable_unprepare(i2s->clk);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static const struct of_device_id axi_deltaSigma_of_match[] = {

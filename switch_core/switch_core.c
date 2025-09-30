@@ -32,6 +32,7 @@
 #include <asm/uaccess.h>
 #include <asm/io.h>
 #include <linux/ioctl.h>
+#include <linux/version.h>
 
 #include "switch_config.h"
 
@@ -209,7 +210,11 @@ static int switch_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int switch_remove(struct platform_device *pdev)
+#else
+static void switch_remove(struct platform_device *pdev)
+#endif
 {
 	struct switch_dev *sdev;
 
@@ -222,7 +227,9 @@ static int switch_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id switch_of_match[] = {

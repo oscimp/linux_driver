@@ -33,6 +33,7 @@
 #include <linux/delay.h>
 #include <linux/of.h>
 #include <linux/timer.h>
+#include <linux/version.h>
 
 #include <linux/slab.h>		/* kmalloc */
 
@@ -276,7 +277,11 @@ static int axi_to_dac_probe(struct platform_device *pdev)
 	return ret;
 }
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 static int axi_to_dac_remove(struct platform_device *pdev)
+#else
+static void axi_to_dac_remove(struct platform_device *pdev)
+#endif
 {
 	struct axi_to_dac_dev *sdev;
 
@@ -289,7 +294,9 @@ static int axi_to_dac_remove(struct platform_device *pdev)
 	release_mem_region(sdev->mem_res->start, resource_size(sdev->mem_res));
 	kfree(sdev);
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(6, 11, 0)
 	return 0;
+#endif
 }
 
 static struct of_device_id axi_to_dac_of_match[] = {
