@@ -312,7 +312,7 @@ static int data_to_ram_probe(struct platform_device *pdev)
 
 	/* irq */
 	/* get IRQ 0 'dmatest' from device tree */
-	sdev->irq_res = platform_get_irq(pdev, 0);
+	sdev->irq_res = platform_get_irq_optional(pdev, 0);
 	if (sdev->irq_res > 0) {
 		sdev->use_irq = 1;
 		sdev->irq_handled = false;
